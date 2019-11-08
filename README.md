@@ -11,4 +11,4 @@ User Information: The Perl script irepeat.upstream.pl has five following input p
 
 -outdir: the directory name of the output file.
 
-example: perl irepeat.upstream.pl -geno example/genome -gene example/gene/gene.txt -anno example/annotation/annotation.strand.xls -outpre irepeat -outdir ./
+example: perl irepeat.upstream.pl -geno example/genome -gene example/gene/gene.txt -anno example/annotation/annotation.strand.xls -outpre test -outdir ./example/outdir
