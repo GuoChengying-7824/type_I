@@ -1,4 +1,4 @@
-# type_I
+# irepeat.upstream.pl
 User Information: The Perl script irepeat.upstream.pl has five following input parameters: 
 
 -geno: for the location of the genome file directory which contains fasta sequence files.
