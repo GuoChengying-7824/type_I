@@ -14,6 +14,8 @@ GetOptions(
 	) or &USAGE;
 
 &USAGE unless ($genomedir and $genefile and $annotationfile and $outprefix and $outdir);
+&CheckDir("$outdir");
+
 my($name,%hash,%hash2,@irs_l);
 my @list = glob("$genomedir/*.fasta");
 foreach  $name(@list){
@@ -52,10 +54,11 @@ open (GFF, $annotationfile) || die "Can't open GFF! \n" ;
 open (OUT, ">$outdir/$outprefix.xls") || die "Can't creat OUTFILE! \n" ;
 open (OUT2, ">$outdir/$outprefix.defeated.gff");
 print OUT "#GeneName\tgeneStart\tgeneEnd\tOrganism\tGenBank\tgeneLength\tInverted_Repeats_number\tInverted_Repeats_Length\tGene_seq(5'-3')\tInverted_Repeats_gene_Start\tInverted_Repeats_gene_End\tInverted_Repeats_upstream_seq(5'-3')\tInverted_Repeats_upstream_Start\tInverted_Repeats_upstream_End\n";
-
+my($upstream);
 while(<GFF>){
 	chomp;
 	my ($GeneName,$geneStart,$geneEnd,$Organism,$GenBank,$Strand) = split(/\t/,$_);
+	next if($GeneName =~ /^#/);
 	if($geneStart ne "-" && $geneEnd ne "-"){
 		my $geneLength = $geneEnd - $geneStart + 1;
 		if(exists $hash2{$GeneName} && exists $hash{$GenBank}){
@@ -66,10 +69,10 @@ while(<GFF>){
 			$reseqGene =~ tr/ATGC/TACG/;
 			if($geneStart < $len){
 				if($geneStart >= 30000){
-					my $upstream = substr($seqGenome,$geneStart-30000,30000);
+					$upstream = substr($seqGenome,$geneStart-30000,30000);
 				}
 				else{
-					my $upstream = substr($seqGenome,0,$geneStart);
+					$upstream = substr($seqGenome,0,$geneStart);
 				}
 				my $ir_number = 1;
 				my $repSeq = "";
@@ -77,9 +80,9 @@ while(<GFF>){
 				for(my $i=0; $i<scalar(@irs_l); $i++){
 					my $minreps = $irs_l[$i];
 					for(my $l=0; $l<$geneLength-$minreps; $l++){
-						if($Strand eq "-"){
-					       		my $repSeq = substr($seqGene,$l,$minreps);
-							if(my $upstream =~ /($repSeq)/ig){
+						if($Strand eq "+"){
+					       	my $repSeq = substr($seqGene,$l,$minreps);
+							if($upstream =~ /($repSeq)/ig){
 								my $ir = uc($1);
 								my $irLength = length($ir);
 								my $irStart = index($seqGenome,$ir);
@@ -92,11 +95,12 @@ while(<GFF>){
 									print OUT join("\t", $GeneName, $geneStart, $geneEnd, $Organism, $GenBank,
 									$geneLength, $ir_number++, $irLength, $ir,$irgeneStart, $irgeneEnd,
 									 $irTran, $irStart,$irEnd), "\n";
+							}else{
 							}
 						}
-						else{ ##if($Strand eq "+")
+						else{ ##if($Strand eq "-")
 							my $repSeq = substr($reseqGene,$l,$minreps);
-							if(my $upstream =~ /($repSeq)/ig){
+							if($upstream =~ /($repSeq)/ig){
 								my $ir = uc($1);
 								my $irLength = length($ir);
 								my $irStart = index($seqGenome,$ir);
@@ -109,6 +113,7 @@ while(<GFF>){
 									print OUT join("\t", $GeneName, $geneStart, $geneEnd, $Organism, $GenBank,
 									$geneLength, $ir_number++, $irLength, $ir,$irgeneStart, $irgeneEnd,
 									$irTran, $irStart,$irEnd), "\n";
+							}else{
 							}
 						}
 
@@ -134,6 +139,19 @@ sub novel {
 				return 1;
 		}
 }
+sub CheckDir{
+	my $file = shift;
+	unless( -d $file ){
+		if( -d dirname($file) && -w dirname($file) ){
+			system("mkdir -p $file");
+		}else{
+			print STDERR "$file not exists and cannot be built\n";
+			exit;
+		}
+	}
+	return 1;
+}
+
 sub USAGE {
 	my $usage=<<"USAGE";
 	Program:     $0
