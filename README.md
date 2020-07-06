@@ -1,4 +1,7 @@
 # irepeat.upstream.pl
+
+This software enables the user to determine the presence of inverted repeats in a region of DNA downstream of the gene of interest.
+
 User Information: The Perl script irepeat.upstream.pl has five following input parameters: 
 
 -geno: for the location of the genome file directory which contains fasta sequence files.
